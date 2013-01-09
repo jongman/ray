@@ -15,6 +15,46 @@
 #include"lodepng.h"
 using namespace std;
 
+struct vector3
+{
+  double x, y, z;
+  vector3(double x_ = 0, double y_ = 0, double z_ = 0) : x(x_), y(y_), z(z_) {}
+  vector3 operator + (const vector3& other) const {
+    return vector3(x + other.x, y + other.y, z + other.z);
+  }
+  vector3 operator - (const vector3& other) const {
+    return vector3(x - other.x, y - other.y, z - other.z);
+  }
+  vector3 operator * (double p) const {
+    return vector3(x * p, y * p, z * p);
+  }
+  // dot product
+  double operator * (const vector3& b) const {
+    const vector3& a = *this;
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+  }
+  // cross product
+  vector3 operator ^ (const vector3& b) const {
+    const vector3& a = *this;
+    return vector3(a.y * b.z - a.z * b.y, 
+                   a.z * b.x - a.x * b.z, 
+                   a.x * b.y - a.y * b.x);
+  }
+  double length() const {
+    return sqrt(x*x + y*y + z*z);
+  }
+  vector3 normalized() const {
+    double l = length();
+    return vector3(x / l, y / l, z / l);
+  }
+  // returns the projection of vector v on this
+  vector3 projected(const vector3& v) const {
+    vector3 n = normalized();
+    return n * (n * v);
+  }
+};
+vector3 operator * (double a, const vector3& b) { return b * a; }
+
 typedef unsigned char uchar;
 
 struct RGB {
