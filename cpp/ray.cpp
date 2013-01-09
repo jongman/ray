@@ -53,6 +53,10 @@ struct vector3
     return n * (n * v);
   }
 };
+ostream& operator << (ostream& os, const vector3& v) {
+  os << '(' << v.x << ", " << v.y << ", " << v.z << ')';
+  return os;
+}
 vector3 operator * (double a, const vector3& b) { return b * a; }
 
 typedef unsigned char uchar;
@@ -82,14 +86,44 @@ void writePicture(const string& filename, const Picture& picture) {
   lodepng::encode(filename.c_str(), scene, W, H);
 }
 
+struct Camera {
+  vector3 position;
+  vector3 direction;
+  vector3 up;
+  vector3 right;
+  double distance_to_head;
+
+  Camera(vector3 p, vector3 d, vector3 u, double dist) {
+    position = p.normalized();
+    direction = d.normalized();
+    up = u.normalized();
+    right = (direction ^ up).normalized();
+    distance_to_head = dist;
+  }
+};
+
+void testCamera() {
+  Camera c(vector3(0, 0, 0),
+           vector3(1, 0, 0),
+           vector3(0, 0, 1),
+           1);
+  cout << c.right << endl;
+  assert((c.right - vector3(0, -1, 0)).length() < 1e-10);
+}
+
+void test() {
+  testCamera();
+}
+
 int main() {
-  Picture scene(480, vector<RGB>(640));
-  for(int y = 0; y < 480; ++y)
-    for(int x = 0; x < 640; ++x) {
-      if((y / 50) % 2 == 0) {
-        scene[y][x].r = (y+x) % 255;
-      }
-    }
-  writePicture("scene.png", scene);
+  test();
+  // Picture scene(480, vector<RGB>(640));
+  // for(int y = 0; y < 480; ++y)
+  //   for(int x = 0; x < 640; ++x) {
+  //     if((y / 50) % 2 == 0) {
+  //       scene[y][x].r = (y+x) % 255;
+  //     }
+  //   }
+  // writePicture("scene.png", scene);
 }
 
