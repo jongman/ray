@@ -91,25 +91,46 @@ struct Camera {
   vector3 direction;
   vector3 up;
   vector3 right;
-  double distance_to_head;
 
-  Camera(vector3 p, vector3 d, vector3 u, double dist) {
-    position = p.normalized();
+  Camera(vector3 p, vector3 d, vector3 u) {
+    position = p;
     direction = d.normalized();
     up = u.normalized();
     right = (direction ^ up).normalized();
-    distance_to_head = dist;
   }
 };
 
 void testCamera() {
-  Camera c(vector3(0, 0, 0),
-           vector3(1, 0, 0),
-           vector3(0, 0, 1),
-           1);
+  Camera c(vector3(0, 0, 0), vector3(1, 0, 0), vector3(0, 0, 1));
   cout << c.right << endl;
   assert((c.right - vector3(0, -1, 0)).length() < 1e-10);
 }
+
+struct Object {
+  virtual vector3 meet(const vector3& here, const vector3& direction) const = 0;
+  virtual RGB reflect(const vector3& here, const vector3& meetAt) const = 0;
+};
+
+struct Scene {
+  RGB cast(const vector3& here, const vector3& dir) const {
+    return RGB(0, 0, 255);
+  }
+  Picture draw(const Camera& camera, double dist_to_camera, double size, int size_px) const {
+    Picture picture(size_px, vector<RGB>(size_px));
+
+    vector3 frustum_center = camera.position + camera.direction * dist_to_camera;
+    for(int y = 0; y < size_px; ++y) {
+      for(int x = 0; x < size_px; ++x) {
+        double y_pos = y / double(size_px - 1) * size;
+        double x_pos = x / double(size_px - 1) * size;
+        vector3 mapped = frustum_center - (y_pos - 0.5) * camera.up + (x_pos - 0.5) * camera.right;
+        picture[y][x] = cast(camera.position, 
+                             (mapped - camera.position).normalized());
+      }
+    }
+    return picture;
+  }
+};
 
 void test() {
   testCamera();
@@ -117,13 +138,9 @@ void test() {
 
 int main() {
   test();
-  // Picture scene(480, vector<RGB>(640));
-  // for(int y = 0; y < 480; ++y)
-  //   for(int x = 0; x < 640; ++x) {
-  //     if((y / 50) % 2 == 0) {
-  //       scene[y][x].r = (y+x) % 255;
-  //     }
-  //   }
-  // writePicture("scene.png", scene);
+  Scene scene;
+  Camera camera(vector3(0, 0, 10), vector3(0, 0, -1), vector3(0, 1, 0));
+  Picture picture = scene.draw(camera, 1, 3, 480);
+  writePicture("scene.png", picture);
 }
 
