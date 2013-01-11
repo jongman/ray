@@ -189,7 +189,8 @@ struct Scene {
       intensity += fabs((src - here).normalized() * dir);
     }
     intensity = min(1.0, intensity);
-    return RGB(192, 192, 255) * (1 - intensity) + RGB(235, 235, 255) * intensity;
+    // printf("intensity %.4lf\n", intensity);
+    return RGB(24, 24, 24) * (1 - intensity) + RGB(235, 235, 255) * intensity;
   }
 
   RGB cast(const vector3& here, const vector3& dir) const {
@@ -239,7 +240,8 @@ int main() {
   scene.addObject(new Plane());
   scene.addObject(new Sphere(vector3(4, 4, 1), 1, RGB(192, 0, 0)));
   scene.addLightSource(vector3(1, -1, 20));
-  Camera camera(vector3(0, 0, 2), vector3(2, 2, -0.5), vector3(1, 1, 0));
+  // Camera camera(vector3(0, 0, 2), vector3(2, 2, -0.5), vector3(1, 1, 0));
+  Camera camera(vector3(0, 0, 2), vector3(1, 1, 20), vector3(3, 2, 0));
   Picture picture = scene.draw(camera, 1, 1, 480);
   writePicture("scene.png", picture);
 }
