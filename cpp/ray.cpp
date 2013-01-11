@@ -119,7 +119,7 @@ struct Plane: public Object {
     return true;
   }
   virtual RGB getColor(const vector3& here, const vector3& meetAt) const {
-    int offset = (int(meetAt.y) + int(meetAt.x)) % 2;
+    int offset = (int(floor(meetAt.y)) + int(floor(meetAt.x))) % 2;
     if(offset == 0) return RGB(255, 255, 255);
     return RGB(64, 64, 128);
   }
