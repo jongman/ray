@@ -107,14 +107,56 @@ void testCamera() {
 }
 
 struct Object {
-  virtual vector3 meet(const vector3& here, const vector3& direction) const = 0;
-  virtual RGB reflect(const vector3& here, const vector3& meetAt) const = 0;
+  virtual bool getIntersection(const vector3& here, const vector3& direction, vector3& intersection) const = 0;
+  virtual RGB getColor(const vector3& here, const vector3& meetAt) const = 0;
+};
+
+struct Plane: public Object {
+  virtual bool getIntersection(const vector3& here, const vector3& direction, vector3& intersection) const {
+    double mult = -here.z / direction.z;
+    if(mult < 0) return false;
+    intersection = here + direction * mult;
+    return true;
+  }
+  virtual RGB getColor(const vector3& here, const vector3& meetAt) const {
+    int offset = (int(meetAt.y) + int(meetAt.x)) % 2;
+    if(offset == 0) return RGB(255, 255, 255);
+    return RGB(64, 64, 128);
+  }
 };
 
 struct Scene {
-  RGB cast(const vector3& here, const vector3& dir) const {
-    return RGB(0, 0, 255);
+  vector<Object*> objects;
+
+  ~Scene() {
+    for(auto it: objects) 
+      delete it;
   }
+
+  void addObject(Object* object) {
+    objects.push_back(object);
+  }
+
+  RGB cast(const vector3& here, const vector3& dir) const {
+    Object* closest = nullptr;
+    vector3 contact;
+    RGB color;
+
+    for(auto object: objects) {
+      vector3 p;
+      bool intersects = object->getIntersection(here, dir, p);
+      if(!intersects) continue;
+
+      if(closest == nullptr || (here - contact).length() > (here - p).length()) {
+        closest = object;
+        contact = p;
+      }
+    }
+    if(!closest) return RGB(0, 0, 0); 
+
+    return closest->getColor(here, contact);
+  }
+
   Picture draw(const Camera& camera, double dist_to_camera, double size, int size_px) const {
     Picture picture(size_px, vector<RGB>(size_px));
 
@@ -139,6 +181,7 @@ void test() {
 int main() {
   test();
   Scene scene;
+  scene.addObject(new Plane());
   Camera camera(vector3(0, 0, 10), vector3(0, 0, -1), vector3(0, 1, 0));
   Picture picture = scene.draw(camera, 1, 3, 480);
   writePicture("scene.png", picture);
