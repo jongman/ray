@@ -183,7 +183,7 @@ int main() {
   Scene scene;
   scene.addObject(new Plane());
   Camera camera(vector3(0, 0, 10), vector3(0, 0, -1), vector3(0, 1, 0));
-  Picture picture = scene.draw(camera, 1, 3, 480);
+  Picture picture = scene.draw(camera, 1, 1, 480);
   writePicture("scene.png", picture);
 }
 
