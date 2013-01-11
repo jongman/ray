@@ -68,6 +68,8 @@ struct RGB {
     r = g = b = 0;
   }
   RGB(uchar r, uchar g, uchar b): r(r), g(g), b(b) {}
+  RGB operator * (double x) const { return RGB(r * x, g * x, b * x); }
+  RGB operator + (const RGB& rhs) const { return RGB(r + rhs.r, g + rhs.g, b + rhs.b); }
 };
 
 typedef vector<vector<RGB> > Picture;
@@ -181,6 +183,15 @@ struct Scene {
     objects.push_back(object);
   }
 
+  RGB sky(const vector3& here, const vector3& dir) const {
+    double intensity = 0;
+    for(auto src: light_sources) {
+      intensity += fabs((src - here).normalized() * dir);
+    }
+    intensity = min(1.0, intensity);
+    return RGB(192, 192, 255) * (1 - intensity) + RGB(235, 235, 255) * intensity;
+  }
+
   RGB cast(const vector3& here, const vector3& dir) const {
     Object* closest = nullptr;
     vector3 contact;
@@ -196,7 +207,7 @@ struct Scene {
         contact = p;
       }
     }
-    if(!closest) return RGB(0, 0, 0); 
+    if(!closest) return sky(here, dir);
 
     return closest->getColor(here, contact);
   }
