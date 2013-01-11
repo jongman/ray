@@ -96,6 +96,7 @@ struct Camera {
     position = p;
     direction = d.normalized();
     up = u.normalized();
+    up = (u - direction.projected(u)).normalized();
     right = (direction ^ up).normalized();
   }
 };
