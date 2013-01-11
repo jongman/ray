@@ -14,6 +14,7 @@
 #include<vector>
 #include"lodepng.h"
 using namespace std;
+const double EPSILON = 1e-12;
 
 struct vector3
 {
@@ -126,6 +127,43 @@ struct Plane: public Object {
   }
 };
 
+struct Sphere: public Object {
+
+  vector3 center;
+  double radius;
+  RGB color;
+
+  Sphere(const vector3& center, double radius, RGB color):
+      center(center), radius(radius), color(color) {
+  }
+
+  // 2차방정식 ax^2 + bx + c = 0 의 모든 실근을 크기 순서대로 반환한다
+  vector<double> solve2(double a, double b, double c) const
+  {
+    double d = b*b - 4*a*c;
+    if(d < -EPSILON) return vector<double>();
+    if(d < EPSILON) return vector<double>(1, -b / (2*a));
+    vector<double> ret;
+    ret.push_back((-b - sqrt(d)) / (2*a));
+    ret.push_back((-b + sqrt(d)) / (2*a));
+    return ret;
+  }
+
+  virtual bool getIntersection(const vector3& here, const vector3& direction, vector3& intersection) const {
+
+    double a = direction * direction;
+    double b = 2 * direction * (here - center);
+    double c = center * center + here * here - 2 * here * center - radius * radius;
+    vector<double> sols = solve2(a, b, c);
+    if(sols.empty() || sols[0] < EPSILON) return false;
+    intersection = here + direction * sols[0];
+    return true;
+  }
+  virtual RGB getColor(const vector3& here, const vector3& meetAt) const {
+    return color;
+  }
+};
+
 struct Scene {
   vector<Object*> objects;
 
@@ -183,6 +221,7 @@ int main() {
   test();
   Scene scene;
   scene.addObject(new Plane());
+  scene.addObject(new Sphere(vector3(4, 4, 1), 1, RGB(192, 0, 0)));
   Camera camera(vector3(0, 0, 2), vector3(2, 2, -0.5), vector3(1, 1, 0));
   Picture picture = scene.draw(camera, 1, 1, 480);
   writePicture("scene.png", picture);
